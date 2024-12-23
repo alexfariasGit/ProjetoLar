@@ -1,0 +1,260 @@
+﻿@model Web.Models.Pessoa
+@{
+    ViewData["Title"] = "Cadastro de Pessoa";
+}
+@{
+    var pessoaDTO = new Pessoa
+            {
+                PessoaID = 0,
+                Nome = null,
+                CPF = null,
+                DataNascimento = DateTime.MinValue,
+                Ativo = false,
+                Telefones = Model.Telefones.Select(t => new Telefone
+                {
+                    TelefoneID = 0,
+                    Tipo = null,
+                    Numero = null,
+                    PessoaID = 0,
+                }).ToList()
+            };
+
+    var pessoaJson = System.Text.Json.JsonSerializer.Serialize(pessoaDTO);
+}
+<h2>@ViewData["Title"]</h2>
+
+<!-- Formulário de Pessoa -->
+<form method="post">
+
+    <!-- Campo oculto para enviar os telefones -->
+    <input asp-for="Telefones" type="hidden" class="form-control" value="@Model.Telefones" />
+
+    <!-- Campo oculto para enviar os telefones -->
+    <input type="hidden" id="PessoaID" name="PessoaID" value="@Model.PessoaID" />
+
+    <div>
+        <label>Nome:</label>
+        <input asp-for="Nome" class="form-control" />
+    </div>
+    <div>
+        <label>CPF:</label>
+        <input asp-for="CPF" class="form-control" />
+    </div>
+    <div>
+        <label>Data Nascimento:</label>
+        <input asp-for="DataNascimento" type="date" class="form-control" />
+    </div>
+    <div>
+        <label>Ativo:</label>
+        <input asp-for="Ativo" type="checkbox" />
+    </div>
+
+    <div class="d-flex justify-content-end">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAdicionarTelefone">
+            Adicionar Telefone
+        </button>
+    </div>
+
+    <!-- Lista de Telefones -->
+    <h3>Telefones</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Tipo</th>
+                <th>Numero</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var telefone in Model.Telefones)
+            {
+                <tr>
+                    <td>@telefone.Tipo</td>
+                    <td>@telefone.Numero</td>
+                    <td>
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalExcluirTelefone" data-tipo-id="@telefone.Tipo" data-numero-id="@telefone.Numero">
+                            Excluir
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <button type="button" id="btnSalvar" onclick="SalvarDados()" class="btn btn-success">Salvar</button>
+</form>
+
+<!-- Modal Adicionar Telefone -->
+<div class="modal fade" id="modalAdicionarTelefone" tabindex="-1" aria-labelledby="modalAdicionarTelefoneLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalAdicionarTelefoneLabel">Adicionar Telefone</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="modalTipo">Tipo</label>
+                    <!-- DropDownList para selecionar o tipo de telefone -->
+                    <select class="form-control" id="TipoTelefone" name="TipoTelefone">
+                        <option value="Celular">Celular</option>
+                        <option value="Empresarial">Empresarial</option>
+                        <option value="Residencial">Residencial</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Numero:</label>
+                    <input id="NumeroTelefone" class="form-control" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="adicionarTelefone()">Adicionar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Excluir Telefone -->
+<div class="modal fade" id="modalExcluirTelefone" tabindex="-1" aria-labelledby="modalExcluirTelefoneLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalExcluirTelefoneLabel">Excluir Telefone</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Você tem certeza que deseja excluir este telefone?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" onclick="excluirTelefone()">Excluir</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var telefoneTipoExcluir;
+        var telefoneNumeroExcluir;
+        var pessoaJson = @Html.Raw(pessoaJson);
+
+        function adicionarTelefone() {
+            var tipo = $('#TipoTelefone').val();
+            var numero = $('#NumeroTelefone').val();;
+            var telefones = pessoaJson.Telefones || [];
+
+            if (tipo && numero) {
+                var telefoneExistente = telefones.some(function (telefone) {
+                    return telefone.numero === numero && telefone.tipo === tipo;
+                });
+
+                if (telefoneExistente) {
+                    alert("Este número de telefone já está cadastrado.");
+                    return;
+                }
+
+                var telefone = { TelefoneID: 0, Tipo: tipo, Numero: numero };
+                pessoaJson.Telefones.push(telefone);
+
+                atualizarCampoTelefones();
+
+                atualizarListaTelefones();
+                $('#modalAdicionarTelefone').modal('hide');
+            }
+        }
+
+        function excluirTelefone() {
+            for (let i = 0; i < pessoaJson.Telefones.length; i++) {
+                if (pessoaJson.Telefones[i].Tipo === telefoneTipoExcluir && pessoaJson.Telefones[i].Numero === telefoneNumeroExcluir) {
+                    pessoaJson.Telefones.splice(i, 1);
+                    break;
+                }
+            }
+
+            atualizarListaTelefones();
+            $('#modalExcluirTelefone').modal('hide');
+        }
+
+        function atualizarCampoTelefones() {
+            var telefonesJSON = JSON.stringify(pessoaJson.Telefones);
+            document.getElementById("Telefones").value = telefonesJSON;
+        }
+        function atualizarListaTelefones() {
+            var tbody = document.querySelector("tbody");
+            tbody.innerHTML = "";
+            pessoaJson.Telefones.forEach(function (telefone) {
+                var tr = document.createElement("tr");
+                tr.innerHTML = `<td>${telefone.Tipo}</td><td>${telefone.Numero}</td>
+                                                    <td><button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalExcluirTelefone" data-tipo-id="${telefone.Tipo}" data-numero-id="${telefone.Numero}">Excluir</button></td>`;
+                tbody.appendChild(tr);
+            });
+        }
+        function ajustarModeloAntesDeSubmit() {
+            var pessoa = {
+                PessoaID: pessoaJson.PessoaID,
+                Nome: $('#Nome').val(),
+                CPF: $('#CPF').val(),
+                DataNascimento: $('#DataNascimento').val(),
+                Ativo: $('#Ativo').is(':checked'),
+                Telefones: []
+            };
+
+            pessoaJson.Telefones.forEach(function (telefone) {
+                pessoa.Telefones.push({
+                    TelefoneID: telefone.TelefoneID,
+                    Tipo: telefone.Tipo,
+                    Numero: telefone.Numero,
+                    PessoaID: telefone.PessoaID
+                });
+            });
+
+            document.getElementById("Telefones").value = JSON.stringify(pessoa.Telefones);
+            document.getElementById("PessoaID").value = pessoa.PessoaID;
+        }
+        function SalvarDados() {
+
+            var pes = {
+                PessoaID: pessoaJson.PessoaID,
+                Nome: $('#Nome').val(),
+                CPF: $('#CPF').val(),
+                DataNascimento: $('#DataNascimento').val(),
+                Ativo: $('#Ativo').is(':checked'),
+                Telefones: []
+            };
+
+            pessoaJson.Telefones.forEach(function (telefone) {
+                pes.Telefones.push({
+                    TelefoneID: telefone.TelefoneID,
+                    Tipo: telefone.Tipo,
+                    Numero: telefone.Numero,
+                    PessoaID: telefone.PessoaID
+                });
+            });
+
+            $.ajax({
+                url: '/Pessoa/Create',
+                type: 'POST',
+                data: JSON.stringify(pes),
+                contentType: 'application/json',
+                dataType: 'json',
+                success: function (response) {
+                    window.location.href = '/Pessoa/Index';
+                },
+                error: function (xhr, status, error) {
+                    window.location.href = '/Pessoa/Index';
+                }
+            });
+        };
+
+        document.querySelectorAll('[data-bs-target="#modalExcluirTelefone"]').forEach(button => {
+            button.addEventListener('click', function () {
+                telefoneTipoExcluir = this.getAttribute('data-tipo-id');
+                telefoneNumeroExcluir = this.getAttribute('data-numero-id');
+            });
+        });
+
+    </script>
+}
+

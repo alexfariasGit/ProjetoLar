@@ -1,0 +1,36 @@
+﻿@model List<Pessoa>
+
+@{
+    ViewData["Title"] = "Lista de Pessoas";
+}
+
+<h1>@ViewData["Title"]</h1>
+<div class="d-flex justify-content-end">
+    <a href="@Url.Action("Create", "Pessoa")" class="btn btn-primary">Nova Pessoa</a>
+</div>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Nome</th>
+            <th>CPF</th>
+            <th>Ativo</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var pessoa in Model)
+        {
+            <tr>
+                <td>@pessoa.Nome</td>
+                <td>@pessoa.CPF</td>
+                <td>@pessoa.Ativo</td>
+                <td>
+                    <a href="@Url.Action("Details", "Pessoa", new { id = pessoa.PessoaID})" class="btn btn-info">Detalhes</a>
+                    <a href="@Url.Action("Edit", "Pessoa", new { id = pessoa.PessoaID })" class="btn btn-warning">Editar</a>
+                    <a href="@Url.Action("Delete", "Pessoa", new { id = pessoa.PessoaID })" class="btn btn-danger">Apagar</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+

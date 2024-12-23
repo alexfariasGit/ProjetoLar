@@ -1,0 +1,49 @@
+# Ignore build results
+bin
+obj
+
+# Ignore user-specific files
+.user
+.userosscache
+.suo
+.userprefs
+
+# Ignore generated files
+.pidb
+.svclog
+.vssscc
+
+# Ignore Windows Installer files
+.cab
+.msi
+.msm
+.msp
+
+# Ignore JetBrains Rider files
+.idea
+
+# Ignore ASP.NET Scaffolding files
+ScaffoldingReadMe.txt
+
+# Ignore web application data
+wwwroot
+
+# Ignore global .NET tools
+dotnet-tools
+
+# Ignore local tool manifest
+tool-manifest
+
+# Ignore the NuGet packages folder
+# .NET Core has an automatic restore, so this is unnecessary in most cases
+packages
+
+# Ignore logs and temporary files
+.log
+.dmp
+
+# Ignore npm and Yarn dependencies
+node_modules
+
+# Ignore the VS Code directory
+.vscode

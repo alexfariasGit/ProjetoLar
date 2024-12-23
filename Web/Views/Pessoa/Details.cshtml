@@ -1,0 +1,43 @@
+﻿@model Web.Models.Pessoa
+
+@{
+    ViewData["Title"] = "Detalhes da Pessoa";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div>
+    <strong>Nome:</strong> @Model.Nome
+</div>
+<div>
+    <strong>CPF:</strong> @Model.CPF
+</div>
+<div>
+    <strong>Data de Nascimento:</strong> @Model.DataNascimento.ToString("dd/MM/yyyy")
+</div>
+<div>
+    <strong>Ativo:</strong> @(Model.Ativo ? "Sim" : "Não")
+</div>
+<br />
+<fieldset>
+    <legend>Telefones</legend>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Tipo</th>
+                <th>Telefone</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var tel in Model.Telefones)
+            {
+                <tr>
+                    <td>@tel.Tipo</td>
+                    <td>@tel.Numero</td>                   
+                </tr>
+            }
+        </tbody>
+    </table>
+</fieldset>
+<br />
+<a href="@Url.Action("Index")" class="btn btn-secondary">Voltar</a>
